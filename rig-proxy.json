@@ -1,0 +1,69 @@
+[
+  {
+    "id": "registration-service",
+    "name": "registration-service",
+    "auth_type": "none",
+    "auth": {
+      "use_header": false,
+      "header_name": "",
+      "use_query": false,
+      "query_name": ""
+    },
+    "versioned": false,
+    "version_data": {
+      "default": {
+        "endpoints": [
+          {
+            "id": "register",
+            "path": "/api/rs/register",
+            "method": "POST",
+            "secured": false
+          },
+          {
+            "id": "register",
+            "path": "/api/rs/register/sync",
+            "path_replacement": "/api/rs/register",
+            "method": "POST",
+            "secured": false,
+            "response_from": "kafka"
+          }
+        ]
+      }
+    },
+    "proxy": {
+      "use_env": true,
+      "target_url": "RS_HOST",
+      "port": 5000
+    }
+  },
+  {
+    "id": "kafka-service",
+    "name": "kafka-service",
+    "auth_type": "none",
+    "auth": {
+      "use_header": false,
+      "header_name": "",
+      "use_query": false,
+      "query_name": ""
+    },
+    "versioned": false,
+    "version_data": {
+      "default": {
+        "endpoints": [
+          {
+            "id": "kafka",
+            "path": "/api/kafka",
+            "method": "POST",
+            "target": "kafka",
+            "secured": false
+          }
+        ]
+      }
+    },
+    "proxy": {
+      "use_env": true,
+      "target_url": "KAFKA_HOST",
+      "port": 9092
+    }
+  }
+]

@@ -1,0 +1,16 @@
+replicaCount: 1
+
+image:
+  repository: openslava-rig_notification-service
+  tag: latest
+  pullPolicy: Never # needed for local Kubernetes cluster (docker desktop)
+
+service:
+  port: 6000
+  targetPort: 6000
+  type: ClusterIP
+
+deployment:
+  port: 6000
+  env:
+    KAFKA_BROKERS: kafka:9092

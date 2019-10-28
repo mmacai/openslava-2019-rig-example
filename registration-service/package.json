@@ -1,0 +1,26 @@
+{
+  "name": "registration-service",
+  "version": "0.1.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "compression": "^1.7.3",
+    "express": "^4.16.4",
+    "express-validation": "^1.0.2",
+    "express-winston": "^3.1.0",
+    "helmet": "^3.15.0",
+    "http-status": "^1.3.1",
+    "kafkajs": "^1.11.0",
+    "uuid": "^3.3.2",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "start:watch": "nodemon index.js"
+  }
+}

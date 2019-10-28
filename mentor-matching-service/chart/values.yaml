@@ -1,0 +1,16 @@
+replicaCount: 1
+
+image:
+  repository: openslava-rig_mentor-matching-service
+  tag: latest
+  pullPolicy: Never # needed for local Kubernetes cluster (docker desktop)
+
+service:
+  port: 4000
+  targetPort: 4000
+  type: ClusterIP
+
+deployment:
+  port: 4000
+  env:
+    KAFKA_BROKERS: kafka:9092
