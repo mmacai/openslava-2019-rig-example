@@ -18,9 +18,13 @@ const produce = (type, data, correlation) => {
   const cloudEvent = createMessage({
     type,
     source: config.kafka.cloudEventSource,
-    data,
-    extensions: { rig: { correlation } }
+    data
   });
+
+  if (correlation) {
+    cloudEvent.rig = { correlation };
+  }
+
   return kafkaClient.produce(config.kafka.destinationTopic, [
     { key: uuid(), value: JSON.stringify(cloudEvent) }
   ]);

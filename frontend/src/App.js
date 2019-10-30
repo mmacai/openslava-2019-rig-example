@@ -91,7 +91,7 @@ const App = ({ enqueueSnackbar, closeSnackbar }) => {
       const subscriptions = [
         {
           eventType: MENTOR_ASSIGNED,
-          oneOf: [{ name: values.name }]
+          oneOf: [{ attendeeName: values.name }]
         }
       ];
       if (values.type === 'async') {
@@ -105,13 +105,13 @@ const App = ({ enqueueSnackbar, closeSnackbar }) => {
       }
       await sse.createSubscriptions(subscriptions);
       if (values.type === 'async') {
-        await registerAsync(values);
+        await registerAsync({ name: values.name });
       } else {
         const res = await registerSync(values);
         const message = await res.json();
-        if (message.type === REGISTRATION_CONFIRMED) {
+        if (message.eventType === REGISTRATION_CONFIRMED) {
           setLogs(previousLogs => [
-            { type: message.type, data: message },
+            { type: message.eventType, data: message },
             ...previousLogs
           ]);
           showNotification('Sync Registration confirmed!');

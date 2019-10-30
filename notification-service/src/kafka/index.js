@@ -73,13 +73,13 @@ const consume = async () => {
         if (!value) return;
 
         const valueJSON = JSON.parse(value.toString());
-        const { type, data } = valueJSON;
+        const { eventType, data } = valueJSON;
 
-        if (type in handlers) {
+        if (eventType in handlers) {
           logger.debug(
             `Consumed message=${value.toString()} from topic=${topic} and partition=${partition}.`
           );
-          await handlers[type](data);
+          await handlers[eventType](data);
         } else {
           logger.debug(
             `No handler found for message=${value.toString()} from topic=${topic} and partition=${partition}.`

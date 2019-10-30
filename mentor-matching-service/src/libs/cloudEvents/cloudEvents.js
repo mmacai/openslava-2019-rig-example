@@ -1,19 +1,19 @@
-const uuid = require('uuid/v4');
+const { v4 } = require('uuid');
 
 const createMessage = ({
   type,
   source,
   data,
   extensions,
-  contenttype = 'application/json'
+  contentType = 'text/plain'
 }) => {
   return {
-    id: uuid(),
-    time: new Date().toISOString(),
-    specversion: '0.2',
-    type,
+    eventID: v4(),
+    eventTime: new Date().toISOString(),
+    cloudEventsVersion: '0.1',
+    eventType: type,
     source,
-    contenttype,
+    contentType,
     data,
     ...extensions
   };

@@ -40,7 +40,7 @@ services:
       - PROXY_CONFIG_FILE=/rig-proxy.json
       - RS_HOST=registration-service
       - KAFKA_HOST=kafka
-      - EXTRACTORS={"com.openslava.registration.confirmed":{"name":{"stable_field_index":0,"event":{"json_pointer":"/data/name"}}},"com.openslava.mentor.assigned":{"name":{"stable_field_index":0,"event":{"json_pointer":"/data/name"}}}}
+      - EXTRACTORS={"com.openslava.registration.confirmed":{"name":{"stable_field_index":0,"event":{"json_pointer":"/data/name"}}},"com.openslava.mentor.assigned":{"name":{"stable_field_index":0,"event":{"json_pointer":"/data/attendeeName"}}}}
     ports:
       - 4000:4000
       - 4010:4010
