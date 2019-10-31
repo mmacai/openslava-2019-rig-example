@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: openslava-rig_registration-service
+  repository: openslava-2019-rig-example_registration-service
   tag: latest
   pullPolicy: Never # needed for local Kubernetes cluster (docker desktop)
 

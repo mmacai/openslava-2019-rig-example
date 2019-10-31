@@ -4,7 +4,7 @@
 replicaCount: 1
 
 image:
-  repository: openslava-rig_frontend
+  repository: openslava-2019-rig-example_frontend
   tag: latest
   pullPolicy: Never
 

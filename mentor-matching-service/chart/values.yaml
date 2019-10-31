@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: openslava-rig_mentor-matching-service
+  repository: openslava-2019-rig-example_mentor-matching-service
   tag: latest
   pullPolicy: Never # needed for local Kubernetes cluster (docker desktop)
 
