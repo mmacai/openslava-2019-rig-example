@@ -1,10 +1,14 @@
 # OpenSlava
 
 ```sh
-docker-compose up -d
+./start_local.sh
 ```
 
+If you want to use also Avro uncomment lines below `<== UNCOMMENT TO USE AVRO ==>` in `docker-compose.yml`.
+
 ## Kubernetes
+
+Without Avro at the moment.
 
 ```sh
 helm init

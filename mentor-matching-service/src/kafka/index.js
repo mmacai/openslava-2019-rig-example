@@ -53,30 +53,29 @@ const produce = (type, data) => {
     source: config.kafka.cloudEventSource,
     data
   });
-  return kafkaClient.produce(config.kafka.destinationTopic, [
-    { key: uuid(), value: JSON.stringify(cloudEvent) }
-  ]);
+
+  return kafkaClient.produce(config.kafka.destinationTopic, cloudEvent);
 };
 
 const consume = async () => {
   await kafkaClient.consume(
     config.kafka.sourceTopic,
-    async ({ topic, partition, message }) => {
+    async ({ topic, partition, value }) => {
       try {
-        const { value } = message;
-        if (!value) return;
-
-        const valueJSON = JSON.parse(value.toString());
-        const { eventType, data } = valueJSON;
+        const { eventType, data } = value;
 
         if (eventType in handlers) {
           logger.debug(
-            `Consumed message=${value.toString()} from topic=${topic} and partition=${partition}.`
+            `Consumed message=${JSON.stringify(
+              value
+            )} from topic=${topic} and partition=${partition}.`
           );
           await handlers[eventType](data);
         } else {
           logger.debug(
-            `No handler found for message=${value.toString()} from topic=${topic} and partition=${partition}.`
+            `No handler found for message=${JSON.stringify(
+              value
+            )} from topic=${topic} and partition=${partition}.`
           );
         }
       } catch (error) {

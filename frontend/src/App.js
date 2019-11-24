@@ -60,7 +60,7 @@ const App = ({ enqueueSnackbar, closeSnackbar }) => {
               ]);
 
               if (message.includes('Registration confirmed!')) {
-                await ackRegistration({ message, name: values.name });
+                await ackRegistration({ name: values.name });
               }
 
               closeSnackbar(key);

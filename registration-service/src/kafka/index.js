@@ -25,9 +25,7 @@ const produce = (type, data, correlation) => {
     cloudEvent.rig = { correlation };
   }
 
-  return kafkaClient.produce(config.kafka.destinationTopic, [
-    { key: uuid(), value: JSON.stringify(cloudEvent) }
-  ]);
+  return kafkaClient.produce(config.kafka.destinationTopic, cloudEvent);
 };
 
 module.exports = {

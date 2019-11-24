@@ -5,7 +5,9 @@ const config = {
     groupId: process.env.KAFKA_GROUP_ID || 'notification-service',
     sourceTopic: process.env.KAFKA_SOURCE_TOPIC || 'openslava',
     destinationTopic: process.env.KAFKA_DESTINATION_TOPIC || 'openslava',
-    cloudEventSource: process.env.KAFKA_CLOUD_EVENT_SOURCE || '/notification-service'
+    cloudEventSource: process.env.KAFKA_CLOUD_EVENT_SOURCE || '/notification-service',
+    avroEnabled: process.env.KAFKA_AVRO_ENABLED,
+    schemaRegistryHost: process.env.KAFKA_SCHEMA_REGISTRY_HOST || 'http://localhost:8081/'
   }
 };
 

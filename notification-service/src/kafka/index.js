@@ -36,7 +36,7 @@ const handlers = {
   },
   [NOTIFICATION_ACKNOWLEDGED]: async data => {
     logger.info(
-      `Notification with message="${data.message}" acknowledged by attendee="${data.name}" > canceling email notification`
+      `Notification acknowledged by attendee="${data.name}" > canceling email notification`
     );
     const job = jobs[data.name];
     if (job) {
@@ -59,30 +59,30 @@ const produce = (type, data) => {
     source: config.kafka.cloudEventSource,
     data
   });
-  return kafkaClient.produce(config.kafka.destinationTopic, [
-    { key: uuid(), value: JSON.stringify(cloudEvent) }
-  ]);
+
+  return kafkaClient.produce(config.kafka.destinationTopic, cloudEvent);
 };
 
 const consume = async () => {
   await kafkaClient.consume(
     config.kafka.sourceTopic,
-    async ({ topic, partition, message }) => {
+    async ({ topic, partition, value }) => {
       try {
-        const { value } = message;
-        if (!value) return;
+        const { eventType, type, data } = value;
+        const eType = eventType || type;
 
-        const valueJSON = JSON.parse(value.toString());
-        const { eventType, data } = valueJSON;
-
-        if (eventType in handlers) {
+        if (eType in handlers) {
           logger.debug(
-            `Consumed message=${value.toString()} from topic=${topic} and partition=${partition}.`
+            `Consumed message=${JSON.stringify(
+              value
+            )} from topic=${topic} and partition=${partition}.`
           );
-          await handlers[eventType](data);
+          await handlers[eType](data);
         } else {
           logger.debug(
-            `No handler found for message=${value.toString()} from topic=${topic} and partition=${partition}.`
+            `No handler found for message=${JSON.stringify(
+              value
+            )} from topic=${topic} and partition=${partition}.`
           );
         }
       } catch (error) {

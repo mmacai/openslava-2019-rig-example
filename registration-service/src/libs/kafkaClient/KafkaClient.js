@@ -1,4 +1,5 @@
 const { Kafka } = require('kafkajs');
+const { SchemaRegistry } = require('@kafkajs/confluent-schema-registry');
 const uuid = require('uuid/v4');
 
 class KafkaClient {
@@ -23,9 +24,13 @@ class KafkaClient {
     this.kafka = new Kafka(config);
     this.kafka.logger().info(`Using clientId=${this.options.clientId}`);
     this.producerConnected = false;
+
+    if (options.avroEnabled) {
+      this.registry = new SchemaRegistry({ host: options.schemaRegistryHost });
+    }
   }
 
-  async produce(topic, messages) {
+  async produce(topic, message) {
     // Connect only first time and make sure producer is connected before sending any message
     if (!this.producerConnected) {
       this.producer = this.kafka.producer();
@@ -35,15 +40,36 @@ class KafkaClient {
       });
     }
 
+    const { data, ...headers } = message;
+    let value;
+    let cloudEventsData = {};
+
+    if (this.options.avroEnabled) {
+      headers.contentType = 'avro/binary';
+      Object.keys(headers).forEach(headerKey => {
+        if (typeof headers[headerKey] === 'object') {
+          cloudEventsData[`ce-${headerKey}`] = JSON.stringify(headers[headerKey]);
+        } else {
+          cloudEventsData[`ce-${headerKey}`] = headers[headerKey];
+        }
+      });
+      value = await this.registry.encode(2, data);
+    } else {
+      value = JSON.stringify(message);
+    }
+
+    const messageToSend = [{ key: uuid(), value, headers: cloudEventsData }];
+
     this.kafka
       .logger()
       .info(
-        `Producing ${messages.length} messages=${JSON.stringify(
-          messages
+        `Producing ${messageToSend.length} messages=${JSON.stringify(
+          messageToSend
         )} to topic=${topic}`
       );
-    await this.producer.send({ topic, messages });
-    this.kafka.logger().info(`${messages.length} message(s) sent successfully`);
+
+    await this.producer.send({ topic, messages: messageToSend });
+    this.kafka.logger().info(`${messageToSend.length} message(s) sent successfully`);
   }
 
   async consume(topic, callback) {
@@ -52,7 +78,29 @@ class KafkaClient {
 
     await this.consumer.connect();
     await this.consumer.subscribe({ topic });
-    await this.consumer.run({ eachMessage: callback });
+    await this.consumer.run({
+      eachMessage: async ({ topic, partition, message }) => {
+        const { value } = message;
+        if (!value) return;
+
+        if (this.options.avroEnabled) {
+          const { headers } = message;
+          let cloudEventsData = {};
+          Object.keys(headers).forEach(headerKey => {
+            const keyWithoutPrefix = headerKey.replace('ce-', '');
+            cloudEventsData[keyWithoutPrefix] = String(headers[headerKey]);
+          });
+          const decodedValue = await this.registry.decode(message.value);
+          return callback({
+            topic,
+            partition,
+            value: { data: decodedValue, ...cloudEventsData }
+          });
+        }
+        const valueJSON = JSON.parse(String(value));
+        return callback({ topic, partition, value: valueJSON });
+      }
+    });
   }
 
   async close() {

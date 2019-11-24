@@ -1,4 +1,4 @@
-version: "3"
+version: '3'
 services:
   zk:
     image: confluentinc/cp-zookeeper:5.0.0
@@ -18,14 +18,29 @@ services:
       - 9094:9094
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zk:2181
-      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9092,OUTSIDE://localhost:9094
-      KAFKA_LISTENERS: INSIDE://0.0.0.0:9092,OUTSIDE://0.0.0.0:9094
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,OUTSIDE://localhost:9094
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,OUTSIDE://0.0.0.0:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
       KAFKA_NUM_PARTITIONS: 4
+    restart: on-failure:5
+
+  kafka-schema-registry:
+    image: confluentinc/cp-schema-registry:5.0.0
+    container_name: kafka-schema-registry
+    ports:
+      - 8081:8081
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: zk:2181
+      SCHEMA_REGISTRY_HOST_NAME: kafka-schema-registry
+      SCHEMA_REGISTRY_LISTENERS: http://kafka-schema-registry:8081
+      SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_METHODS: GET,POST,PUT,OPTIONS
+      SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_ORIGIN: '*'
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:9092
+      SCHEMA_REGISTRY_AVRO_COMPATIBILITY_LEVEL: none
     restart: on-failure:5
 
   reactive-interaction-gateway:
@@ -33,13 +48,21 @@ services:
     image: accenture/reactive-interaction-gateway
     environment:
       - LOG_LEVEL=debug
+      # Kafka
+      - KAFKA_BROKERS=kafka:9092
       - KAFKA_SOURCE_TOPICS=openslava
       - PROXY_KAFKA_REQUEST_TOPIC=openslava
       - PROXY_KAFKA_RESPONSE_TOPICS=openslava
-      - KAFKA_BROKERS=kafka:9092
+      # Kafka Avro
+      # <== UNCOMMENT TO USE AVRO ==>
+      # - KAFKA_SERIALIZER=avro
+      # - KAFKA_SCHEMA_REGISTRY_HOST=kafka-schema-registry:8081
+      # - PROXY_KAFKA_REQUEST_AVRO=openslava-value
+      # Proxy
       - PROXY_CONFIG_FILE=/rig-proxy.json
       - RS_HOST=registration-service
       - KAFKA_HOST=kafka
+      # Subscriptions
       - EXTRACTORS={"com.openslava.registration.confirmed":{"name":{"stable_field_index":0,"event":{"json_pointer":"/data/name"}}},"com.openslava.mentor.assigned":{"name":{"stable_field_index":0,"event":{"json_pointer":"/data/attendeeName"}}}}
     ports:
       - 4000:4000
@@ -56,6 +79,9 @@ services:
       - 5000:5000
     environment:
       KAFKA_BROKERS: kafka:9092
+      # <== UNCOMMENT TO USE AVRO ==>
+      # KAFKA_AVRO_ENABLED: 1
+      # KAFKA_SCHEMA_REGISTRY_HOST: http://kafka-schema-registry:8081/
     volumes:
       - ./registration-service/src:/home/node/src
       - ./registration-service/index.js:/home/node/index.js
@@ -68,6 +94,9 @@ services:
       context: ./mentor-matching-service
     environment:
       KAFKA_BROKERS: kafka:9092
+      # <== UNCOMMENT TO USE AVRO ==>
+      # KAFKA_AVRO_ENABLED: 1
+      # KAFKA_SCHEMA_REGISTRY_HOST: http://kafka-schema-registry:8081/
     volumes:
       - ./mentor-matching-service/src:/home/node/src
       - ./mentor-matching-service/index.js:/home/node/index.js
@@ -80,6 +109,9 @@ services:
       context: ./notification-service
     environment:
       KAFKA_BROKERS: kafka:9092
+      # <== UNCOMMENT TO USE AVRO ==>
+      # KAFKA_AVRO_ENABLED: 1
+      # KAFKA_SCHEMA_REGISTRY_HOST: http://kafka-schema-registry:8081/
     volumes:
       - ./notification-service/src:/home/node/src
       - ./notification-service/index.js:/home/node/index.js
