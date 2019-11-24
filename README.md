@@ -1,4 +1,4 @@
-# OpenSlava
+# Quick start
 
 ```sh
 ./start_local.sh
